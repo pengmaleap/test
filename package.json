@@ -20,7 +20,9 @@
     "mongoose": "^8.2.1",
     "path": "^0.12.7",
     "supertest": "^6.3.4",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "yup": "^1.4.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

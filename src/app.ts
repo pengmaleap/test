@@ -5,7 +5,9 @@ import path from "path";
 import connectToDatabase from "./utils/dbConnection";
 import { movieController } from "./controller/movie.controller";
 import { movieRouter } from "./routers/movie.route";
-// import bodyParser from "body-parser";
+import { requesttime } from "./middleware/requesttime";
+import { errorHandler } from "./middleware/errorhandler";
+import bodyParser from "body-parser";
 
 export const app: Application = express();
 const port = 3000;
@@ -13,28 +15,19 @@ const port = 3000;
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// global middleware
-app.use(express.json());
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const requestTime = new Date();
-  console.log(
-    `[${requestTime.toLocaleString()}] ${req.method} ${req.originalUrl}`
-  );
-  next();
-});
+app.use(bodyParser.urlencoded({ extended: true, limit: "30mb" }));
+app.use(bodyParser.json());
 
+// API
 // global route === sub route
-app.use("/student", studentRouter);
-app.use("/user", userRouter);
+app.use(express.json());
+app.use(requesttime);
+// app.use("/student",studentRouter);
+// app.use("/user" ,userRouter);
 app.use("/movie", movieRouter);
+app.use(errorHandler);
 
-// Global Error Handler
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  res.status(500).json({
-    message: err.message,
-  });
-});
-
+// conncet to database
 connectToDatabase().then(() => {
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
