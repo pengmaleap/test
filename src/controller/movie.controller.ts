@@ -1,15 +1,19 @@
-import { movieModel } from "../model/movie";
-import v1 from "uuid";
+import { movieModel } from "../database/model/movie";
+// import v1 from "uuid";
+import { v1 as uuidv1, v1 } from "uuid";
+import errorHandler from "../middleware/errorhandler";
 import { NextFunction, Request, Response } from "express";
+import { MovieService } from "../services/movieSevice";
 
 export const movieController = {
   getById: async function (req: Request, res: Response, _next: NextFunction) {
+    const movieService = new MovieService();
     try {
-      const m = await movieModel.findById(req.params.movieId);
+      const m = await movieService.getById(req.params.movieId);
       if (m) {
         res.json({ status: "success", message: "Movie found!!!", data: m });
       } else {
-        _next(new Error("Wrong id"))
+        _next(new Error("Wrong id"));
       }
     } catch (err) {
       res.status(500).json({
@@ -19,12 +23,13 @@ export const movieController = {
   },
 
   getAll: async function (req: Request, res: Response) {
+      const movieService = new MovieService();
     try {
-      const movies = await movieModel.find({});
+      const m = await movieService.getAll()
       res.json({
         status: "success",
         message: "Movies list found!!!",
-        data: movies,
+        data: m,
       });
     } catch (err) {
       res.status(500).json({
@@ -34,8 +39,9 @@ export const movieController = {
   },
 
   updateById: async function (req: Request, res: Response) {
+    const movieService = new MovieService();
     try {
-      const m = await movieModel.findByIdAndUpdate(req.params.movieId, {
+      const m = await movieService.updateById(req.params.movieId, {
         name: req.body.name,
         released_on: req.body.released_on,
       });
@@ -51,8 +57,9 @@ export const movieController = {
     }
   },
   deleteById: async function (req: Request, res: Response) {
+    const movieService = new MovieService();
     try {
-      await movieModel.deleteOne({ _id: req.params.movieId });
+      await movieService.deleteById(req.params.movieId);
       res.json({
         status: "success",
         message: "Movie deleted successfully!!!",
@@ -66,14 +73,11 @@ export const movieController = {
   },
 
   create: async function (req: Request, res: Response) {
-    console.log("hello", req.body);
+    const movieService = new MovieService();
     try {
+      const { name, release_on } = req.body;
       const Id = v1;
-      const m = await new movieModel({
-        movieId: Id,
-        name: req.body.name,
-        released_on: req.body.released_on,
-      }).save();
+      const m = await movieService.createMovie({ Id, name, release_on });
       res.json({
         status: "success",
         message: "Movie added successfully!!!",

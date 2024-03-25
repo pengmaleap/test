@@ -1,12 +1,11 @@
 import express, { Application, Request, Response, NextFunction } from "express";
-import { studentRouter } from "./routers/student.route";
-import { userRouter } from "./routers/user.route";
+
 import path from "path";
 import connectToDatabase from "./utils/dbConnection";
 import { movieController } from "./controller/movie.controller";
 import { movieRouter } from "./routers/movie.route";
 import { requesttime } from "./middleware/requesttime";
-import { errorHandler } from "./middleware/errorhandler";
+import  errorHandler  from "./middleware/errorhandler";
 import bodyParser from "body-parser";
 
 export const app: Application = express();
