@@ -17,7 +17,7 @@ function errorHandler(
   // Default to 500 if no status code is set
   //res to client
   if (err instanceof BaseCustomError) {
-    res.status(err.statusCode).json({
+    return res.status(err.statusCode).json({
       statusCode: err.statusCode,
       message: err.message,
     });
@@ -27,6 +27,8 @@ function errorHandler(
     statusCode: 500,
     message: err.message,
   });
+
+  next();
 }
 
 export default errorHandler;

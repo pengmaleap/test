@@ -1,26 +1,37 @@
 import { NextFunction, Request, Response } from "express";
-import z from "zod";
-import { validateInput } from "../validateInput";
 import { BaseCustomError } from "../../utils/statusCode";
 import errorHandler from "../errorhandler";
 
-describe("test errorhandler", () => {
-    test("if the error from basecustom error return statuscode", async () => {
-        // create mock error
-        const err = new BaseCustomError('test error', 400);
-        // mock req,res,next
-        const req = {} as Request
-        const res = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn()
-        } as unknown as Response;
-        const next = jest.fn() as NextFunction;
-        errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-            statusCode: 404,
-         message: 'Test error messages'   
-        })
-    })
+describe("errorHandler middleware", () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: NextFunction;
+
+  beforeEach(() => {
+    req = {};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    next = jest.fn();
+  });
+
+  it("handles BaseCustomError correctly", () => {
+    const mockError = new BaseCustomError("Test error", 404);
+
+    errorHandler(mockError, req as Request, res as Response, next);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Test error", // Ensure this matches the actual expected message, including capitalization
+      statusCode: 404,
+    });
+  });
+
+  it("handles generic errors correctly", () => {
+    const next = jest.fn(); // Mock next function
+    const mockError = new Error("Generic error");
+    errorHandler(mockError, req as Request, res as Response, next);
+    expect(next).toHaveBeenCalled();
+  });
 });
-    
