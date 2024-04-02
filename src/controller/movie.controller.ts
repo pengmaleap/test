@@ -4,89 +4,67 @@ import { v1 as uuidv1, v1 } from "uuid";
 import errorHandler from "../middleware/errorhandler";
 import { NextFunction, Request, Response } from "express";
 import { MovieService } from "../services/movieSevice";
+import { Body, Controller, Delete, Get, Path, Post, Put, Queries, Query, Route } from "tsoa";
 
-export const movieController = {
-  getById: async function (req: Request, res: Response, _next: NextFunction) {
-    const movieService = new MovieService();
-    try {
-      const m = await movieService.getById(req.params.movieId);
-      if (m) {
-        res.json({ status: "success", message: "Movie found!!!", data: m });
-      } else {
-        _next(new Error("Wrong id"));
-      }
-    } catch (err) {
-      res.status(500).json({
-        message: "something went wrong",
-      });
-    }
-  },
+const movieService = new MovieService()
 
-  getAll: async function (req: Request, res: Response) {
-      const movieService = new MovieService();
-    try {
-      const m = await movieService.getAll()
-      res.json({
-        status: "success",
-        message: "Movies list found!!!",
-        data: m,
-      });
-    } catch (err) {
-      res.status(500).json({
-        message: "something went wrong",
-      });
-    }
-  },
+interface QueryParams {
+  limit?: number;
+  page?: number;
+}
 
-  updateById: async function (req: Request, res: Response) {
-    const movieService = new MovieService();
-    try {
-      const m = await movieService.updateById(req.params.movieId, {
-        name: req.body.name,
-        released_on: req.body.released_on,
-      });
-      res.json({
-        status: "success",
-        message: "Movie updated successfully!!!",
-        data: m,
-      });
-    } catch (err) {
-      res.status(500).json({
-        message: "something went wrong",
-      });
-    }
-  },
-  deleteById: async function (req: Request, res: Response) {
-    const movieService = new MovieService();
-    try {
-      await movieService.deleteById(req.params.movieId);
-      res.json({
-        status: "success",
-        message: "Movie deleted successfully!!!",
-        data: null,
-      });
-    } catch (err) {
-      res.status(500).json({
-        message: "something went wrong",
-      });
-    }
-  },
+@Route("/movie")
+export class MovieController extends Controller {
 
-  create: async function (req: Request, res: Response) {
-    const movieService = new MovieService();
+  @Get("/")
+  public async getAll(@Queries() queryParams: QueryParams): Promise<any> {
     try {
-      const { name, release_on } = req.body;
-      const Id = v1;
-      const m = await movieService.createMovie({ Id, name, release_on });
-      res.json({
+      const pageNumber = queryParams.page ? (queryParams.page) : 1;
+      const pageSize = queryParams.limit ? (queryParams.limit) : 10;
+
+      const users = await movieService.getAll(pageNumber, pageSize);
+
+      const totalCount = await movieService.getAllCount();
+      const totalPages = Math.ceil(totalCount / pageSize);
+
+      return {
         status: "success",
-        message: "Movie added successfully!!!",
-        data: m,
-      });
-    } catch (err) {
-      res.status(500).json({
-        message: "something went wrong",
-      });
+        message: "Users are found",
+        data: users,
+        meta: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: totalPages,
+        },
+      };
+    } catch (err: any) {
+      throw new Error(err.message);
     }
-  },
-};
+  }
+
+  @Post("/")
+  public async createMovie(@Body() requestBody: any) {
+    const { name, released_on } = requestBody;
+    const movieService = new MovieService();
+    return await movieService.createMovie({ name, released_on });
+  }
+  @Get("/:movieId")
+  public async getById(movieId: string) {
+    const moviesService = new MovieService();
+    return await moviesService.getById(movieId);
+  }
+  @Put("/:movieId")
+  public async updateById(movieId: string, @Body() requestBody: any) {
+    const { name, released_on } = requestBody;
+    const moviesService = new MovieService();
+    return await moviesService.updateById(movieId, { name, released_on });
+  }
+  @Delete("/:movieId")
+  public async deleteById(movieId: string) {
+    const moviesService = new MovieService();
+    return await moviesService.deleteById(movieId);
+  }
+}
+
+
