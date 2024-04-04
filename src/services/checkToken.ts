@@ -54,6 +54,7 @@ class CheckToken {
       throw error
     }
   };
+  
 }
 
 export default CheckToken;

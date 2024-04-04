@@ -7,11 +7,10 @@ import CheckToken from "../services/checkToken";
 import { tokenModel } from "../database/model/tokenModel";
 import { promises } from "dns";
 
-
 @Route("/user")
 export class UserController extends Controller {
   @Post("/signup")
-  public async createUser(@Body() requestBody: any) :Promise<any>{
+  public async createUser(@Body() requestBody: any): Promise<any> {
     const { gmail, password } = requestBody;
     const hashPassword = await generatePassword(password);
     const userService = new UserService();
@@ -20,20 +19,22 @@ export class UserController extends Controller {
       password: hashPassword,
     });
     const token = generateToken();
-    await tokenModel.create({ id: user.id, token: token });
+    const timeExpire = new Date();
+
+    await tokenModel.create({ id: user.id, token: token, expired: timeExpire });
     console.log(token);
     nodemailer(gmail, token);
     return user;
   }
   @Post("/Login")
-  public async loginUser(@Body() requestBody: any):Promise<any> {
+  public async loginUser(@Body() requestBody: any): Promise<any> {
     try {
       const { gmail, password } = requestBody;
-       const tokenClass = new CheckToken();
+      const tokenClass = new CheckToken();
       const result = await tokenClass.loginUser(gmail, password);
       return result;
     } catch (error) {
-        throw error
+      throw error;
     }
   }
   @Get("/verify")

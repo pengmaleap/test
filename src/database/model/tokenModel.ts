@@ -21,6 +21,7 @@ const tokenSchema = new Schema({
       return true;
     },
   },
+  expired: { type: String, required: false },
 });
 
 export const tokenModel = mongoose.model<TokenModel>("Token", tokenSchema);
