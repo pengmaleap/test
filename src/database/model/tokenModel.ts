@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { BaseCustomError } from "../../utils/statusCode";
 
-export interface IToken extends mongoose.Document {
+export interface TokenModel extends mongoose.Document {
   id: string;
   token: string;
 }
@@ -23,4 +23,4 @@ const tokenSchema = new Schema({
   },
 });
 
-export default mongoose.model<IToken>("Token", tokenSchema);
+export const tokenModel = mongoose.model<TokenModel>("Token", tokenSchema);

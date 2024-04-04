@@ -3,32 +3,49 @@ import { UserService } from "../services/user.Sevice";
 import { Body, Controller, Post, Queries, Route, Get, Query } from "tsoa";
 import { nodemailer } from "../utils/nodemailer";
 import { generateToken } from "../utils/generateToken";
-import { saveToken } from "../services/userTokenService";
+import CheckToken from "../services/checkToken";
+import { tokenModel } from "../database/model/tokenModel";
+import { promises } from "dns";
+
 
 @Route("/user")
-
 export class UserController extends Controller {
-  @Post("/signIn")
-  public async createUser(@Body() requestBody: any) {
-    const { gmail, password } = requestBody
-    const hashPassword = await generatePassword(password)
+  @Post("/signup")
+  public async createUser(@Body() requestBody: any) :Promise<any>{
+    const { gmail, password } = requestBody;
+    const hashPassword = await generatePassword(password);
     const userService = new UserService();
-    const user = await userService.createUser({ gmail, password: hashPassword });
-    const token = generateToken(user.id);
-    await saveToken(user.id, token);
-    console.log(token)
+    const user = await userService.createUser({
+      gmail,
+      password: hashPassword,
+    });
+    const token = generateToken();
+    await tokenModel.create({ id: user.id, token: token });
+    console.log(token);
     nodemailer(gmail, token);
-    return user
+    return user;
   }
-  
-  @Get("/verify")
-  public async getAll(@Query() token:string ): Promise<any> {
+  @Post("/Login")
+  public async loginUser(@Body() requestBody: any):Promise<any> {
     try {
-      // Verify the email token
-      const userService = new UserService();
-      await userService.getAllUser()
+      const { gmail, password } = requestBody;
+       const tokenClass = new CheckToken();
+      const result = await tokenClass.loginUser(gmail, password);
+      return result;
     } catch (error) {
-      throw error
+        throw error
     }
   }
+  @Get("/verify")
+  public async verifyEmail(@Query() token: string): Promise<any> {
+    try {
+      // Verify the email token
+      const tokenClass = new CheckToken();
+      const user = await tokenClass.VerifyUser(token);
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
+}

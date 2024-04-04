@@ -1,32 +1,59 @@
-import Token from "../database/model/userToken";
 import { BaseCustomError } from "../utils/statusCode";
-import { saveToken } from "./userTokenService";
-import { userModel } from "../database/model/user";
+import { UserRepo } from "../database/repository/userRepo";
+import { TokenRepo } from "../database/repository/tokenRepo";
+import bcrypt from "bcrypt";
+const jwt = require("jsonwebtoken");
 
 class CheckToken {
-  async tokenExists(token: string) {
-    const tokenDoc = await Token.findOne({ token });
-    if (!tokenDoc) {
-      throw new BaseCustomError("Token does not exist", 404);
-    }
-    return tokenDoc; // Optional: return the document if further processing is needed.
+  repo: UserRepo;
+  tokenRepo: TokenRepo;
+  constructor() {
+    this.repo = new UserRepo();
+    this.tokenRepo = new TokenRepo();
   }
 
-  async userIdExists(userId: string, token: string) {
-    const userDoc = await Token.findOne({ userId });
-    if (!userDoc) {
-      throw new BaseCustomError("User does not exist.", 404);
+  async VerifyUser(token: string) {
+    try {
+      const isToken = await this.tokenRepo.findToken(token);
+      if (!isToken) {
+        throw new BaseCustomError("Verification token is invalid", 404);
+      }
+
+      // Find the user associated with this token
+      const user = await this.repo.getById(isToken.id);
+      if (!user) {
+        throw new BaseCustomError("User does not exist.", 404);
+      }
+      // Mark the user's email as verified
+      user.isVerified = true;
+      await user.save();
+
+      // Remove the verification token
+      await this.tokenRepo.deleteToken(token);
+      return user;
+    } catch (error: unknown) {
+      throw error;
     }
-
-    // Mark the user's email as verified
-    userDoc.isVerified = true; // Assuming 'verified' is the correct field name
-    await userDoc.save();
-
-    // Remove the verification token
-    await saveToken.(token);
-
-    return userDoc; // Assuming you want to return the updated user document.
   }
+
+  async loginUser(gmail: any, password: any) {
+    try {
+      const user = await this.repo.FindUserByEmail(gmail);
+      if (!user) {
+        throw new BaseCustomError("User not found, please sign up.",404);
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw new BaseCustomError("Email or Password is invalid.",400);
+      }
+
+      const token = jwt.sign({ _id: user._id }, "maleap");
+      return { user, token };
+    } catch (error: unknown) {
+      throw error
+    }
+  };
 }
 
-export default new CheckToken();
+export default CheckToken;

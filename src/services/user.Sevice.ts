@@ -13,4 +13,5 @@ export class UserService {
     async getAllUser(): Promise<any>{
         return await this.userRepo.getAll();
     }
+  
 }

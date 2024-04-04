@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { boolean } from "zod";
 const userSchema = new mongoose.Schema({
   gmail: {
     // Typically, field names are camelCased in JavaScript

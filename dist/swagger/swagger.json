@@ -174,7 +174,7 @@
 				]
 			}
 		},
-		"/user/signIn": {
+		"/user/signup": {
 			"post": {
 				"operationId": "CreateUser",
 				"responses": {
@@ -199,9 +199,34 @@
 				}
 			}
 		},
+		"/user/Login": {
+			"post": {
+				"operationId": "LoginUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {}
+						}
+					}
+				}
+			}
+		},
 		"/user/verify": {
 			"get": {
-				"operationId": "GetAll",
+				"operationId": "VerifyEmail",
 				"responses": {
 					"200": {
 						"description": "Ok",

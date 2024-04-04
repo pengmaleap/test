@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
 
-export function generateToken(userId:number) {
+export function generateToken() {
     return randomBytes(32).toString('hex');
 }
